@@ -1,0 +1,18 @@
+{
+  "transaction": {
+    "hash": "0xabababababababababababababababababababababababababababababababab",
+    "blockNumber": "0x10",
+    "from": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "to": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "value": "0x0",
+    "input": "0xa9059cbb000000000000000000000000cccccccccccccccccccccccccccccccccccccccc00000000000000000000000000000000000000000000000000000000000001f4"
+  },
+  "receipt": {
+    "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+    "blockNumber": "0x10",
+    "status": "0x1",
+    "gasUsed": "0x5208",
+    "effectiveGasPrice": "0x3b9aca00",
+    "logs": []
+  }
+}
