@@ -83,6 +83,10 @@ class Evidence:
     native_value_wei: int
     gas_used: int
     effective_gas_price_wei: int | None
+    execution_fee_wei: int | None
+    blob_gas_used: int | None
+    blob_gas_price_wei: int | None
+    blob_fee_wei: int | None
     transaction_fee_wei: int | None
     calldata: dict[str, object]
     log_count: int
@@ -104,11 +108,34 @@ def analyze_bundle(transaction: dict[str, object], receipt: dict[str, object]) -
         raise DecodeError("receipt status must be 0x0 or 0x1")
     gas = _hex_int(receipt.get("gasUsed"), "receipt.gasUsed")
     price = _hex_int(receipt.get("effectiveGasPrice"), "receipt.effectiveGasPrice", optional=True)
+    blob_gas = _hex_int(receipt.get("blobGasUsed"), "receipt.blobGasUsed", optional=True)
+    blob_price = _hex_int(receipt.get("blobGasPrice"), "receipt.blobGasPrice", optional=True)
+    if (blob_gas is None) != (blob_price is None):
+        raise DecodeError("receipt blobGasUsed and blobGasPrice must appear together")
     sender = _evm_address(transaction.get("from"), "transaction.from")
     recipient_value = transaction.get("to")
     recipient = None if recipient_value is None else _evm_address(recipient_value, "transaction.to")
     logs = receipt.get("logs", [])
     if not isinstance(logs, list):
         raise DecodeError("receipt.logs must be an array")
-    evidence = Evidence(tx_hash.lower(), block_tx or 0, "success" if status_value == 1 else "reverted", sender, recipient, _hex_int(transaction.get("value"), "transaction.value") or 0, gas or 0, price, (gas or 0) * price if price is not None else None, decode_calldata(transaction.get("input")), len(logs))
+    execution_fee = (gas or 0) * price if price is not None else None
+    blob_fee = blob_gas * blob_price if blob_gas is not None and blob_price is not None else None
+    total_fee = execution_fee + (blob_fee or 0) if execution_fee is not None else None
+    evidence = Evidence(
+        tx_hash.lower(),
+        block_tx or 0,
+        "success" if status_value == 1 else "reverted",
+        sender,
+        recipient,
+        _hex_int(transaction.get("value"), "transaction.value") or 0,
+        gas or 0,
+        price,
+        execution_fee,
+        blob_gas,
+        blob_price,
+        blob_fee,
+        total_fee,
+        decode_calldata(transaction.get("input")),
+        len(logs),
+    )
     return {"evidence": asdict(evidence), "limitations": ["method decoding covers four fixed ABI signatures only", "token symbols, prices, intent, safety, and contract identity are not inferred", "receipt facts do not prove that an interaction was beneficial or authorized"]}

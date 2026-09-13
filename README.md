@@ -9,7 +9,7 @@ The core analyzer is offline and dependency-free. A read-only JSON-RPC fetch mod
 Block explorers are useful, but audit notes and bug reports often need portable evidence that can be regenerated. TxReceiptAI focuses on that narrow job:
 
 - no wallet connection, signing, approvals, transaction submission, trading, or custody;
-- exact integer arithmetic for gas fees;
+- exact integer arithmetic with separate execution and EIP-4844 blob fees;
 - strict transaction hash, address, quantity, ABI-word, and receipt checks;
 - explicit unknowns instead of inferred token symbols, prices, identities, intent, or safety;
 - stable JSON output suitable for diffs and downstream tests.
@@ -52,6 +52,8 @@ The first release recognizes only these exact selectors:
 
 Everything else is labeled `unknown` with its selector and byte length. TxReceiptAI does not fetch ABIs, resolve proxies, decode logs, identify contracts, or decide whether an interaction was authorized or safe.
 
+The evidence itemizes `execution_fee_wei` and, for EIP-4844 receipts, `blob_fee_wei`. `transaction_fee_wei` is their exact total. Blob gas and price must either both be present or both be absent; incomplete fee evidence is rejected.
+
 ## Test
 
 ```bash
@@ -73,10 +75,11 @@ Apache-2.0. See [LICENSE](LICENSE).
 ```sh
 chmod +x install.sh run.sh
 ./install.sh
-./run.sh --help
+./run.sh
+./cli.sh --help
 ```
 
 
 ## Standard launcher
 
-`./run.sh` is the normal entry point. It runs `./install.sh` automatically when setup is missing, then opens the PySide6 control panel with live output and actions for the demo, tests, repair, and stop. Use `./cli.sh` for CLI-only operation.
+`./run.sh` is the normal entry point. It runs `./install.sh` automatically when setup is missing, then opens the PySide6 control panel with live output and actions for the bundled offline receipt demo, real test suite, repair, and stop. Use `./cli.sh` for CLI-only operation, `./demo.sh` for the deterministic bundled example, and `./test.sh` to run the same checks outside the GUI.

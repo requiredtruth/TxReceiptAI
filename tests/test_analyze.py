@@ -17,7 +17,25 @@ class AnalyzeTests(unittest.TestCase):
         evidence = analyze_bundle(tx, receipt)["evidence"]
         self.assertEqual(evidence["calldata"]["method"], "transfer(address,uint256)")
         self.assertEqual(evidence["calldata"]["arguments"]["amount"], 500)
+        self.assertEqual(evidence["execution_fee_wei"], 21000 * 1_000_000_000)
+        self.assertIsNone(evidence["blob_fee_wei"])
         self.assertEqual(evidence["transaction_fee_wei"], 21000 * 1_000_000_000)
+
+    def test_blob_fee_is_included_in_total(self) -> None:
+        tx, receipt = self.bundle()
+        receipt["blobGasUsed"] = "0x20000"
+        receipt["blobGasPrice"] = "0x3"
+        evidence = analyze_bundle(tx, receipt)["evidence"]
+        self.assertEqual(evidence["blob_gas_used"], 131_072)
+        self.assertEqual(evidence["blob_gas_price_wei"], 3)
+        self.assertEqual(evidence["blob_fee_wei"], 393_216)
+        self.assertEqual(evidence["transaction_fee_wei"], 21_000_000_393_216)
+
+    def test_incomplete_blob_fee_pair_fails(self) -> None:
+        tx, receipt = self.bundle()
+        receipt["blobGasUsed"] = "0x20000"
+        with self.assertRaisesRegex(DecodeError, "must appear together"):
+            analyze_bundle(tx, receipt)
 
     def test_unknown_selector_stays_unknown(self) -> None:
         self.assertEqual(decode_calldata("0xdeadbeef")["method"], "unknown")
