@@ -13,6 +13,8 @@
     "status": "0x1",
     "gasUsed": "0x5208",
     "effectiveGasPrice": "0x3b9aca00",
+    "blobGasUsed": "0x20000",
+    "blobGasPrice": "0x3",
     "logs": []
   }
 }
